@@ -1,7 +1,7 @@
 extern crate kair;
 extern crate lp_modeler;
 
-use kai::ModelLP;
+use kair::ModelLP;
 use std::str::FromStr;
 
 fn main() {
