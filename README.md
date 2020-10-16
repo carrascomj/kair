@@ -22,12 +22,23 @@ The FBA problem can then be optimized thanks to [lp_modeler](https://github.com/
 See [What is flux balance analysis?, Orth et al., 2010](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3108565/)
 for a brief description of FBA.
 
-## Example
+## Installation
 Add **kair** it to your Cargo.toml:
 ```toml
 [dependencies]
 kair = "0.1.0"
 ```
+Make sure you have installed the [Cbc solver](https://github.com/coin-or/Cbc#binaries).
+```shell
+# Debian
+sudo apt install coinor-cbc
+# Arch
+sudo pacman -S coin-or
+# Mac OS
+brew tap coin-or-tools/coinor && brew install coin-or-tools/coinor/cbc
+```
+
+## Example
 Some `use` statements to get started.
 ```rust
 use kair::ModelLP;
