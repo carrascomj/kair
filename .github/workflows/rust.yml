@@ -42,7 +42,7 @@ jobs:
         with:
           command: clippy
           args: -- -D warnings
-  check:
+  build:
     name: CI and Code coverage
     runs-on: ubuntu-latest
     steps:
@@ -54,6 +54,9 @@ jobs:
         with:
           toolchain: stable
           override: true
+
+      - name: Install coin-or-cbc (LP solver)
+        run: sudo apt-get install coinor-cbc
 
       - name: Run cargo-tarpaulin
         uses: actions-rs/tarpaulin@v0.1
