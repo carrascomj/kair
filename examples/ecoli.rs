@@ -1,4 +1,4 @@
-extern crate kai;
+extern crate kair;
 extern crate lp_modeler;
 
 use kai::ModelLP;

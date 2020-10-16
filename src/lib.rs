@@ -70,7 +70,7 @@ impl ModelLP {
     ///
     /// # Example
     /// ```
-    /// use kai::ModelLP;
+    /// use kair::ModelLP;
     /// use std::str::FromStr;
     ///
     /// let file_str = std::fs::read_to_string("tests/EcoliCore.xml").unwrap();
@@ -86,7 +86,7 @@ impl ModelLP {
     ///
     /// # Example
     /// ```
-    /// use kai::ModelLP;
+    /// use kair::ModelLP;
     /// use std::str::FromStr;
     ///
     /// let file_str = std::fs::read_to_string("tests/EcoliCore.xml").unwrap();

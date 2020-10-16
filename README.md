@@ -1,9 +1,13 @@
-# KAI (__C__OBRA __A__lternative __I__n) rust
+# KAIr (__C__OBRA __A__lternative __I__n __r__ust)
+[![Crates.io](https://img.shields.io/crates/v/kair.svg)](https://crates.io/crates/kair)
+[![Documentation](https://docs.rs/kair/badge.svg)](https://docs.rs/kair/)
+[![Build](https://github.com/carrascomj/kair/workflows/build/badge.svg)](https://github.com/carrascomj/kair)
+[![Codecov](https://codecov.io/github/carrascomj/kair/coverage.svg?branch=trunk)](https://codecov.io/gh/carrascomj/kair)
 __CO__nstraint-__B__ased __R__econstruction and __A__nalysis (COBRA) methods
 enable the use of knowledge-based reconstructions of the metabolism of a
 particular organism to simulate its metabolic network.
 
-**kai** provides the translation from a [SBML](http://sbml.org/Special/specifications/sbml-level-3/version-2/core/release-2/sbml-level-3-version-2-release-2-core.pdf) (using [rust_sbml](https://github.com/carrascomj/rust_sbml/)) document to the most basic
+**kair** provides the translation from a [SBML](http://sbml.org/Special/specifications/sbml-level-3/version-2/core/release-2/sbml-level-3-version-2-release-2-core.pdf) (using [rust_sbml](https://github.com/carrascomj/rust_sbml/)) document to the most basic
 Linear Programming formulation of COBRA: Flux Balance Analysis (FBA). Being
 `f(z)` a function to optimize (historically, the biomass pseudoreaction or the ATPase),
 `S` and stoichimetry matrix; and `v` the flux vector representing
@@ -17,14 +21,14 @@ See [What is flux balance analysis?, Orth et al., 2010](https://www.ncbi.nlm.nih
 for a brief description of FBA.
 
 ## Example
-Add **kai** it to your Cargo.toml:
+Add **kair** it to your Cargo.toml:
 ```toml
 [dependencies]
-kai = "0.1.0"
+kair = "0.1.0"
 ```
 Some `use` statements to get started.
 ```rust
-use kai::ModelLP;
+use kair::ModelLP;
 use std::str::FromStr;
 ```
 First, read the SBML document, we will be using the [e_coli_core model](http://bigg.ucsd.edu/models/e_coli_core).
