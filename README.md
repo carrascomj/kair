@@ -1,9 +1,11 @@
-# KAIr (__C__OBRA __A__lternative __I__n __r__ust)
+# KAIr (COBRA Alternative In rust)
+
 [![Crates.io](https://img.shields.io/crates/v/kair.svg)](https://crates.io/crates/kair)
 [![Documentation](https://docs.rs/kair/badge.svg)](https://docs.rs/kair/)
 [![Build](https://github.com/carrascomj/kair/workflows/build/badge.svg)](https://github.com/carrascomj/kair)
 [![Codecov](https://codecov.io/github/carrascomj/kair/coverage.svg?branch=trunk)](https://codecov.io/gh/carrascomj/kair)
-__CO__nstraint-__B__ased __R__econstruction and __A__nalysis (COBRA) methods
+
+*COnstraint-Based Reconstruction and Analysis* (COBRA) methods
 enable the use of knowledge-based reconstructions of the metabolism of a
 particular organism to simulate its metabolic network.
 
