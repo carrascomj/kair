@@ -10,9 +10,9 @@ fn main() {
     // println!("{:?}", model.metabolites_lp);
     println!(
         "Model has {:?} constraints",
-        &model.problem.constraints.len()
+        &model.constraints.len()
     );
-    println!("Model has {:?} variables", &model.problem.variables().len());
+    println!("Model has {:?} variables", &model.variables.len());
     for (name, val) in model.optimize().unwrap().iter() {
         println!("{} = {}", name, val)
     }
