@@ -56,7 +56,7 @@ println!(
     "Model has {:?} constraints",
     &model.problem.constraints.len()
 );
-println!("Model has {:?} variables", &model.problem.variables().len());
+println!("Model has {:?} variables", &model.variables().len());
 ```
 _Output_
 ```
