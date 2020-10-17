@@ -88,7 +88,7 @@ impl AddAssign<LpConstraint> for ModelLP {
 
 impl AddAssign<LpExpression> for ModelLP {
     fn add_assign(&mut self, _rhs: LpExpression) {
-        self.add_objective_expression(&_rhs.into());
+        self.add_objective_expression(&_rhs);
     }
 }
 
@@ -207,7 +207,7 @@ impl From<Model> for ModelLP {
 }
 
 impl From<&ModelLP> for LpProblem {
-    fn from(model: &ModelLP) -> LpProblem  {
+    fn from(model: &ModelLP) -> LpProblem {
         LpProblem {
             // TODO: from sbml
             name: "COBRA model",
