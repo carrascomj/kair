@@ -19,7 +19,7 @@ lp-modeler = "0.4.2"
 rustdoc-args = [ "--html-in-header", "./src/docs-header.html" ]
 
 [dev-dependencies]
-criterion = "*"
+criterion = "0.3.3"
 
 [[bench]]
 name = "formulate_from_sbml"
