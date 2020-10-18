@@ -53,15 +53,14 @@ Having read the document, the LP problem is already formulated. We can print
 some information about it:
 ```rust
 println!(
-    "Model has {:?} constraints",
-    &model.problem.constraints.len()
-);
-println!("Model has {:?} variables", &model.variables().len());
+      "Model has {:?} constraints and {:?} variables",
+      &model.constraints.len(),
+      &model.variables.len()
+  );
 ```
 _Output_
 ```
-Model has 144 constraints
-Model has 95 variables
+Model has 144 constraints and 95 variables
 ```
 Finally, we can optimize it and print the solution, which is just a
 [HashMap](https://doc.rust-lang.org/std/collections/struct.HashMap.html) of
