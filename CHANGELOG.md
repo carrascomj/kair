@@ -1,4 +1,4 @@
-Next release
+0.2.0
 ------------
 * Change in API: call `model.constraints.len()` and `model.variables.len()` instead
 of accessing the now removed underlying `LpProblem`.
