@@ -14,7 +14,7 @@
 //! use kair::ModelLP;
 //! use std::str::FromStr;
 //!
-//! let file_str = std::fs::read_to_string("tests/EcoliCore.xml").unwrap();
+//! let file_str = std::fs::read_to_string("examples/EcoliCore.xml").unwrap();
 //! let model = ModelLP::from_str(&file_str).unwrap();
 //! println!(
 //!     "Model has {:?} constraints and {:?} variables",
@@ -31,9 +31,12 @@
 //! * [Github repository](https://github.com/carrascomj/kair), open to PRs!
 //! * [rust_sbml](https://docs.rs/rust_sbml/0.3.0/rust_sbml/): SBML parser in rust.
 //! * [cobrapy](https://github.com/opencobra/cobrapy/): fully featured COBRA package written in Python.
+mod flux_analysis;
+
+pub use flux_analysis::fba;
 
 use lp_modeler::dsl::*;
-use lp_modeler::solvers::{CbcSolver, SolverTrait};
+use lp_modeler::solvers::CbcSolver;
 use rust_sbml::{Model, Parameter, Reaction, Specie, SpeciesReference};
 
 use std::collections::HashMap;
@@ -147,7 +150,8 @@ impl ModelLP {
         model.populate_model();
         model
     }
-    /// Optimize the model according to Flux Balance Analysis (FBA).
+    /// Covenience method to solve Flux Balance Analysis (FBA) with the CbcSolver.
+    ///
     /// FBA: [https://pubmed.ncbi.nlm.nih.gov/20212490/](https://pubmed.ncbi.nlm.nih.gov/20212490/)
     ///
     /// # Example
@@ -162,8 +166,7 @@ impl ModelLP {
     pub fn optimize(&self) -> Result<HashMap<String, f32>, Box<dyn std::error::Error>> {
         let solver = CbcSolver::new();
 
-        let (_, solution) = solver.run(&self.into())?;
-        Ok(solution)
+        fba(&self.into(), solver)
     }
     fn reac_expr(&self, met: &SpeciesReference, reac: &str, com: f32) -> Option<LpExpression> {
         Some(
