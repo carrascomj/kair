@@ -14,6 +14,7 @@ readme = "README.md"
 [dependencies]
 rust_sbml = { version="0.3.0", default_features=false }
 lp-modeler = "0.4.2"
+uuid = "*"
 
 [package.metadata.docs.rs]
 rustdoc-args = [ "--html-in-header", "./src/docs-header.html" ]

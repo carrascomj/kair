@@ -38,6 +38,7 @@ pub use flux_analysis::fba;
 use lp_modeler::dsl::*;
 use lp_modeler::solvers::CbcSolver;
 use rust_sbml::{Model, Parameter, Reaction, Specie, SpeciesReference};
+use uuid::Uuid;
 
 use std::collections::HashMap;
 use std::ops::AddAssign;
@@ -178,7 +179,6 @@ impl ModelLP {
     }
     /// Build LP problem as an FBA formulation.
     fn populate_model(&mut self) {
-        let zero = LpExpression::LitVal(0.);
         let mut stoichiometry = HashMap::<String, Vec<LpExpression>>::new();
         // Build a constraint (stoichiometry) table metabolites x reactions.
         for (reac_id, reaction) in self.reactions.iter() {
@@ -197,8 +197,8 @@ impl ModelLP {
         }
         // Then, add each metabolite column as a constraint.
         for (_, cons) in stoichiometry.iter() {
-            *self += cons.sum().ge(&zero);
-            *self += cons.sum().le(&zero);
+            *self += cons.sum().ge(0.);
+            *self += cons.sum().le(0.);
         }
         self.stoichiometry = stoichiometry;
         // Add the problem as the objective defined in the SBML document
@@ -253,8 +253,7 @@ impl From<&ModelLP> for LpProblem {
         LpProblem {
             // TODO: from sbml
             name: "COBRA model",
-            // TODO: uuid
-            unique_name: "2298820983908".to_string(),
+            unique_name: format!("COBRA model_{}", Uuid::new_v4()),
             objective_type: LpObjective::Maximize,
             obj_expr: model.obj_expr.clone(),
             constraints: model.constraints.clone(),
