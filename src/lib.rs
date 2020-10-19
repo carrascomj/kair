@@ -12,10 +12,13 @@
 //! Read and optimize [e_coli_core model](http://bigg.ucsd.edu/models/e_coli_core)
 //! ```
 //! use kair::ModelLP;
-//! use std::str::FromStr;
+//! use std::{str::FromStr, fs::File, io::{BufReader, prelude::*}};
 //!
-//! let file_str = std::fs::read_to_string("examples/EcoliCore.xml").unwrap();
-//! let model = ModelLP::from_str(&file_str).unwrap();
+//! let file = std::fs::File::open("examples/EcoliCore.xml").unwrap();
+//! let mut buf_reader = BufReader::new(file);
+//! let mut contents = String::new();
+//! buf_reader.read_to_string(&mut contents).unwrap();
+//! let model = ModelLP::from_str(&contents).unwrap();
 //! println!(
 //!     "Model has {:?} constraints and {:?} variables",
 //!     &model.constraints.len(),
@@ -142,9 +145,14 @@ impl ModelLP {
     /// ```
     /// use kair::ModelLP;
     /// use std::str::FromStr;
+    /// # use std::{fs::File, io::{BufReader, prelude::*}};
     ///
-    /// let file_str = std::fs::read_to_string("examples/EcoliCore.xml").unwrap();
-    /// ModelLP::from_str(&file_str).unwrap();
+    /// # let file = std::fs::File::open("examples/EcoliCore.xml").unwrap();
+    /// # let mut buf_reader = BufReader::new(file);
+    /// # let mut contents = String::new();
+    /// # buf_reader.read_to_string(&mut contents).unwrap();
+    /// // contents is a &str containing a SBML document
+    /// ModelLP::from_str(&contents).unwrap();
     /// ```
     pub fn new(input_sbml: Model) -> Self {
         let mut model = Self::from(input_sbml);
@@ -159,9 +167,14 @@ impl ModelLP {
     /// ```
     /// use kair::ModelLP;
     /// use std::str::FromStr;
+    /// # use std::{fs::File, io::{BufReader, prelude::*}};
     ///
-    /// let file_str = std::fs::read_to_string("examples/EcoliCore.xml").unwrap();
-    /// let model = ModelLP::from_str(&file_str).unwrap();
+    /// # let file = std::fs::File::open("examples/EcoliCore.xml").unwrap();
+    /// # let mut buf_reader = BufReader::new(file);
+    /// # let mut contents = String::new();
+    /// # buf_reader.read_to_string(&mut contents).unwrap();
+    /// // contents is a &str containing a SBML document
+    /// let model = ModelLP::from_str(&contents).unwrap();
     /// println!("{:?}", model.optimize().unwrap())
     /// ```
     pub fn optimize(&self) -> Result<HashMap<String, f32>, Box<dyn std::error::Error>> {

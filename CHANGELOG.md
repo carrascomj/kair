@@ -1,3 +1,7 @@
+Next release
+------------
+* Fix bug were doctests were racing for the file handle and sometimes failed because of that.
+
 0.3.0
 -----
 * Refactored flux analysis methods to separated module.

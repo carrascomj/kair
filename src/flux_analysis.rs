@@ -7,12 +7,19 @@ use std::collections::HashMap;
 /// FBA: [https://pubmed.ncbi.nlm.nih.gov/20212490/](https://pubmed.ncbi.nlm.nih.gov/20212490/)
 ///
 /// # Example
-/// ```ignore
+/// ```
 /// use kair::{ModelLP, fba};
 /// use std::{str::FromStr, convert::Into};
 /// use lp_modeler::solvers::CbcSolver;
 ///
-/// let model = &ModelLP::from_str(&include_str!("../tests/EcoliCore.xml")).unwrap();
+/// # use std::{fs::File, io::{BufReader, prelude::*}};
+///
+/// # let file = std::fs::File::open("examples/EcoliCore.xml").unwrap();
+/// # let mut buf_reader = BufReader::new(file);
+/// # let mut contents = String::new();
+/// # buf_reader.read_to_string(&mut contents).unwrap();
+/// // contents is a &str containing a SBML document
+/// let model = &ModelLP::from_str(&contents).unwrap();
 /// println!("{:?}", fba(&model.into(), CbcSolver::new()).unwrap())
 /// ```
 pub fn fba<T: SolverTrait>(
@@ -21,17 +28,4 @@ pub fn fba<T: SolverTrait>(
 ) -> Result<HashMap<String, f32>, Box<dyn std::error::Error>> {
     let (_, solution) = solver.run(problem)?;
     Ok(solution)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::super::*;
-    use std::convert::Into;
-
-    #[test]
-    fn direct_fba() {
-        let file_str = include_str!("../examples/EcoliCore.xml");
-        let model = &ModelLP::from_str(&file_str).unwrap();
-        println!("{:?}", fba(&model.into(), CbcSolver::new()).unwrap())
-    }
 }
