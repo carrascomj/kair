@@ -3,23 +3,22 @@ extern crate kair;
 use kair::{Fbc, ModelLP};
 use std::str::FromStr;
 
+const EXAMPLE: &'static str = include_str!("../tests/EcoliCore.xml");
+
 #[test]
 fn read_ecoli() {
-    let file_str = std::fs::read_to_string("tests/EcoliCore.xml").unwrap();
-    ModelLP::from_str(&file_str).unwrap();
+    ModelLP::from_str(&EXAMPLE).unwrap();
 }
 
 #[test]
 fn verify_bound() {
-    let file_str = std::fs::read_to_string("tests/EcoliCore.xml").unwrap();
-    let model = ModelLP::from_str(&file_str).unwrap();
+    let model = ModelLP::from_str(&EXAMPLE).unwrap();
     assert_eq!(model.reactions["R_ATPM"].lb(&model.config), 8.39);
 }
 
 #[test]
 fn verify_neg_bound() {
-    let file_str = std::fs::read_to_string("tests/EcoliCore.xml").unwrap();
-    let model = ModelLP::from_str(&file_str).unwrap();
+    let model = ModelLP::from_str(&EXAMPLE).unwrap();
     println!(
         "{:?}",
         &model
@@ -34,8 +33,7 @@ fn verify_neg_bound() {
 
 #[test]
 fn optimize_ecoli() {
-    let file_str = std::fs::read_to_string("tests/EcoliCore.xml").unwrap();
-    let model = ModelLP::from_str(&file_str).unwrap();
+    let model = ModelLP::from_str(&EXAMPLE).unwrap();
     assert_eq!(
         (model.optimize().unwrap()["R_BIOMASS_Ecoli_core_w_GAM_"] * 10000.).round(),
         8739.
