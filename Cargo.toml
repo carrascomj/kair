@@ -1,6 +1,6 @@
 [package]
 name = "kair"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["Jorge Carrasco Muriel <carrascomurielj@gmail.com>"]
 edition = "2018"
 description = "COnstraint Based Reconstruction and Analysis (COBRA) in Rust"

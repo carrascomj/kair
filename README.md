@@ -26,7 +26,7 @@ for a brief description of FBA.
 Add **kair** it to your Cargo.toml:
 ```toml
 [dependencies]
-kair = "0.2.0"
+kair = "0.3.0"
 ```
 Make sure you have installed the [Cbc solver](https://github.com/coin-or/Cbc#binaries).
 ```shell
