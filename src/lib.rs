@@ -142,7 +142,7 @@ impl ModelLP {
     /// use kair::ModelLP;
     /// use std::str::FromStr;
     ///
-    /// let file_str = std::fs::read_to_string("tests/EcoliCore.xml").unwrap();
+    /// let file_str = std::fs::read_to_string("examples/EcoliCore.xml").unwrap();
     /// ModelLP::from_str(&file_str).unwrap();
     /// ```
     pub fn new(input_sbml: Model) -> Self {
@@ -159,7 +159,7 @@ impl ModelLP {
     /// use kair::ModelLP;
     /// use std::str::FromStr;
     ///
-    /// let file_str = std::fs::read_to_string("tests/EcoliCore.xml").unwrap();
+    /// let file_str = std::fs::read_to_string("examples/EcoliCore.xml").unwrap();
     /// let model = ModelLP::from_str(&file_str).unwrap();
     /// println!("{:?}", model.optimize().unwrap())
     /// ```
