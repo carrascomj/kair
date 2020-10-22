@@ -1,6 +1,6 @@
 [package]
 name = "kair"
-version = "0.3.0"
+version = "0.3.1"
 authors = ["Jorge Carrasco Muriel <carrascomurielj@gmail.com>"]
 edition = "2018"
 description = "COnstraint Based Reconstruction and Analysis (COBRA) in Rust"
@@ -12,7 +12,7 @@ readme = "README.md"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-rust_sbml = { version="0.3.0", default_features=false }
+rust_sbml = { version="0.4.0", default_features=false }
 lp-modeler = "0.4.2"
 uuid = { version="0.5.1", features=["v4"]}
 

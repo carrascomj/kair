@@ -20,7 +20,9 @@
 //! buf_reader.read_to_string(&mut contents).unwrap();
 //! let model = ModelLP::from_str(&contents).unwrap();
 //! println!(
-//!     "Model has {:?} constraints and {:?} variables",
+//!     "Model {} ({}) has {:?} constraints and {:?} variables",
+//!     &model.id,
+//!     &model.name,
 //!     &model.constraints.len(),
 //!     &model.variables.len()
 //! );
@@ -56,6 +58,9 @@ use std::str::FromStr;
 ///
 /// $$ \text{Max.} f(\overrightarrow{z}) \newline \text{subject to}\medspace S\overrightarrow{v} = 0 \newline \text{where}\medspace lb_j \le v_j \le ub_j $$
 pub struct ModelLP {
+    /// Name and id from SBML document
+    pub id: String,
+    pub name: String,
     /// Metabolites from the SBML document
     pub metabolites: HashMap<String, Specie>,
     /// Reactions from the SBML document
@@ -247,8 +252,18 @@ impl From<Model> for ModelLP {
             })
             .collect();
         let objective = model.objectives[0].to_owned();
+        let id = match model.annotation.id {
+            Some(s) => s,
+            _ => "".to_string()
+        };
+        let name = match model.annotation.name {
+            Some(s) => s,
+            _ => "".to_string()
+        };
 
         ModelLP {
+            id,
+            name,
             metabolites,
             reactions,
             variables: reactions_lp.to_owned(),
@@ -261,12 +276,11 @@ impl From<Model> for ModelLP {
     }
 }
 
-impl From<&ModelLP> for LpProblem {
-    fn from(model: &ModelLP) -> LpProblem {
+impl<'a> From<&'a ModelLP> for LpProblem {
+    fn from(model: &'a ModelLP) -> LpProblem {
         LpProblem {
-            // TODO: from sbml
-            name: "COBRA model",
-            unique_name: format!("COBRA model_{}", Uuid::new_v4()),
+            name: "cobra model",
+            unique_name: format!("{}_{}", model.id, Uuid::new_v4()),
             objective_type: LpObjective::Maximize,
             obj_expr: model.obj_expr.clone(),
             constraints: model.constraints.clone(),
