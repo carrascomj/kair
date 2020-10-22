@@ -254,11 +254,11 @@ impl From<Model> for ModelLP {
         let objective = model.objectives[0].to_owned();
         let id = match model.annotation.id {
             Some(s) => s,
-            _ => "".to_string()
+            _ => "".to_string(),
         };
         let name = match model.annotation.name {
             Some(s) => s,
-            _ => "".to_string()
+            _ => "".to_string(),
         };
 
         ModelLP {
