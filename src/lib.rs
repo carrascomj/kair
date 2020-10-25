@@ -1,3 +1,12 @@
+#![deny(unsafe_code)]
+#![deny(bare_trait_objects)]
+#![deny(unconditional_recursion)]
+#![warn(missing_docs)]
+#![warn(trivial_casts)]
+#![warn(trivial_numeric_casts)]
+#![warn(unreachable_pub)]
+#![warn(unused_qualifications)]
+
 //! Constraint-Based Reconstruction and Analysis.
 //! It uses the [rust_sbml](https://docs.rs/rust_sbml/0.3.0/rust_sbml/) to read a
 //! [SBML](http://sbml.org/Special/specifications/sbml-level-3/version-2/core/release-2/sbml-level-3-version-2-release-2-core.pdf)
@@ -58,8 +67,9 @@ use std::str::FromStr;
 ///
 /// $$ \text{Max.} f(\overrightarrow{z}) \newline \text{subject to}\medspace S\overrightarrow{v} = 0 \newline \text{where}\medspace lb_j \le v_j \le ub_j $$
 pub struct ModelLP {
-    /// Name and id from SBML document
+    /// Id from SBML document
     pub id: String,
+    /// Name from SBML document
     pub name: String,
     /// Metabolites from the SBML document
     pub metabolites: HashMap<String, Specie>,
