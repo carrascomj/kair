@@ -13,7 +13,7 @@ readme = "README.md"
 
 [dependencies]
 rust_sbml = { version="0.4.0", default_features=false }
-lp-modeler = "0.4.2"
+lp-modeler = { git="https://github.com/jcavat/rust-lp-modeler.git" }
 uuid = { version="0.5.1", features=["v4"]}
 
 [package.metadata.docs.rs]

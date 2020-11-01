@@ -50,7 +50,7 @@ mod flux_analysis;
 pub use flux_analysis::fba;
 
 use lp_modeler::dsl::*;
-use lp_modeler::solvers::CbcSolver;
+use lp_modeler::solvers::NativeCbcSolver;
 use rust_sbml::{Model, Parameter, Reaction, Specie, SpeciesReference};
 use uuid::Uuid;
 
@@ -174,7 +174,8 @@ impl ModelLP {
         model.populate_model();
         model
     }
-    /// Covenience method to solve Flux Balance Analysis (FBA) with the CbcSolver.
+    /// Covenience method to solve Flux Balance Analysis (FBA) with the CbcSolver
+    /// (natively).
     ///
     /// FBA: [https://pubmed.ncbi.nlm.nih.gov/20212490/](https://pubmed.ncbi.nlm.nih.gov/20212490/)
     ///
@@ -193,7 +194,7 @@ impl ModelLP {
     /// println!("{:?}", model.optimize().unwrap())
     /// ```
     pub fn optimize(&self) -> Result<HashMap<String, f32>, Box<dyn std::error::Error>> {
-        let solver = CbcSolver::new();
+        let solver = NativeCbcSolver::new();
 
         fba(&self.into(), solver)
     }
