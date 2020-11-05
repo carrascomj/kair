@@ -26,6 +26,6 @@ pub fn fba<T: SolverTrait>(
     problem: &T::P,
     solver: T,
 ) -> Result<HashMap<String, f32>, Box<dyn std::error::Error>> {
-    let (_, solution) = solver.run(problem)?;
-    Ok(solution)
+    let solution = solver.run(problem)?;
+    Ok(solution.results)
 }
