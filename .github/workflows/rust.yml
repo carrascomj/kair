@@ -56,7 +56,7 @@ jobs:
           override: true
 
       - name: Install coin-or-cbc (LP solver)
-        run: sudo apt-get install coinor-cbc
+        run: sudo apt-get install coinor-libcbc-dev coinor-cbc
 
       - name: Run cargo-tarpaulin
         uses: actions-rs/tarpaulin@v0.1
