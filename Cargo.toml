@@ -13,7 +13,7 @@ readme = "README.md"
 
 [dependencies]
 rust_sbml = { version="0.4.1", default_features=false }
-lp-modeler = "0.4.2"
+lp-modeler = "0.4.3"
 uuid = { version="0.7.4", features=["v4"]}
 
 [package.metadata.docs.rs]
