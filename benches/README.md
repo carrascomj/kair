@@ -10,15 +10,15 @@ cargo bench
 
 ## Results
 ```
-Optimize E. coli core   time:   [34.284 ms 34.515 ms 34.772 ms]
-Found 12 outliers among 100 measurements (12.00%)
-  9 (9.00%) high mild
-  3 (3.00%) high severe
+Optimize E. coli core   time:   [22.771 ms 22.860 ms 22.962 ms]
+Found 9 outliers among 100 measurements (9.00%)
+  7 (7.00%) high mild
+  2 (2.00%) high severe
 
-Populate E. coli core   time:   [15.368 ms 15.391 ms 15.416 ms]
-Found 5 outliers among 100 measurements (5.00%)
-  4 (4.00%) high mild
-  1 (1.00%) high severe
+Populate E. coli core   time:   [5.2549 ms 5.2796 ms 5.3092 ms]
+Found 7 outliers among 100 measurements (7.00%)
+  2 (2.00%) high mild
+  5 (5.00%) high severe
 ```
 
 ## Plots and statistics

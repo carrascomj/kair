@@ -51,7 +51,7 @@ pub use flux_analysis::fba;
 
 use lp_modeler::dsl::*;
 use lp_modeler::solvers::CbcSolver;
-use rust_sbml::{Model, Parameter, Reaction, Specie, SpeciesReference};
+use rust_sbml::{Model, Parameter, Reaction, Species, SpeciesReference};
 use uuid::Uuid;
 
 use std::collections::HashMap;
@@ -72,7 +72,7 @@ pub struct ModelLP {
     /// Name from SBML document
     pub name: String,
     /// Metabolites from the SBML document
-    pub metabolites: HashMap<String, Specie>,
+    pub metabolites: HashMap<String, Species>,
     /// Reactions from the SBML document
     pub reactions: HashMap<String, Reaction>,
     /// Parsed from reactions, variables of LP problem
@@ -210,13 +210,13 @@ impl ModelLP {
         let mut stoichiometry = HashMap::<String, Vec<LpExpression>>::new();
         // Build a constraint (stoichiometry) table metabolites x reactions.
         for (reac_id, reaction) in self.reactions.iter() {
-            reaction.list_of_reactants.0.iter().for_each(|sref| {
+            reaction.list_of_reactants.species_references.iter().for_each(|sref| {
                 let cons = &mut stoichiometry
                     .entry(sref.species.to_owned())
                     .or_insert_with(Vec::new);
                 cons.push(self.reac_expr(sref, reac_id, -1.).unwrap());
             });
-            reaction.list_of_products.0.iter().for_each(|sref| {
+            reaction.list_of_products.species_references.iter().for_each(|sref| {
                 let cons = &mut stoichiometry
                     .entry(sref.species.to_owned())
                     .or_insert_with(Vec::new);
@@ -261,12 +261,12 @@ impl From<Model> for ModelLP {
                 )
             })
             .collect();
-        let objective = model.objectives[0].to_owned();
-        let id = match model.annotation.id {
+        let objective = model.objectives.unwrap()[0].to_owned();
+        let id = match model.id {
             Some(s) => s,
             _ => "".to_string(),
         };
-        let name = match model.annotation.name {
+        let name = match model.name {
             Some(s) => s,
             _ => "".to_string(),
         };
