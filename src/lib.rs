@@ -210,18 +210,26 @@ impl ModelLP {
         let mut stoichiometry = HashMap::<String, Vec<LpExpression>>::new();
         // Build a constraint (stoichiometry) table metabolites x reactions.
         for (reac_id, reaction) in self.reactions.iter() {
-            reaction.list_of_reactants.species_references.iter().for_each(|sref| {
-                let cons = &mut stoichiometry
-                    .entry(sref.species.to_owned())
-                    .or_insert_with(Vec::new);
-                cons.push(self.reac_expr(sref, reac_id, -1.).unwrap());
-            });
-            reaction.list_of_products.species_references.iter().for_each(|sref| {
-                let cons = &mut stoichiometry
-                    .entry(sref.species.to_owned())
-                    .or_insert_with(Vec::new);
-                cons.push(self.reac_expr(sref, reac_id, 1.).unwrap());
-            });
+            reaction
+                .list_of_reactants
+                .species_references
+                .iter()
+                .for_each(|sref| {
+                    let cons = &mut stoichiometry
+                        .entry(sref.species.to_owned())
+                        .or_insert_with(Vec::new);
+                    cons.push(self.reac_expr(sref, reac_id, -1.).unwrap());
+                });
+            reaction
+                .list_of_products
+                .species_references
+                .iter()
+                .for_each(|sref| {
+                    let cons = &mut stoichiometry
+                        .entry(sref.species.to_owned())
+                        .or_insert_with(Vec::new);
+                    cons.push(self.reac_expr(sref, reac_id, 1.).unwrap());
+                });
         }
         // Then, add each metabolite column as a constraint.
         for (_, cons) in stoichiometry.iter() {
