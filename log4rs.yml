@@ -1,0 +1,9 @@
+appenders:
+  # An appender named "requests" that writes to a file with a custom pattern encoder
+  vars:
+    kind: file
+    path: "vars.log"
+
+root:
+  appenders:
+    - vars

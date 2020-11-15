@@ -13,8 +13,11 @@ readme = "README.md"
 
 [dependencies]
 rust_sbml = { version="0.4.0", default_features=false }
-lp-modeler = { git="https://github.com/jcavat/rust-lp-modeler.git" }
+lp-modeler = { path="../rust-lp-modeler", features=["native_coin_cbc"] }
+# lp-modeler = { git="https://github.com/jcavat/rust-lp-modeler.git", features=["native_coin_cbc"] }
 uuid = { version="0.5.1", features=["v4"]}
+log4rs = "0.13.0"
+log = "*"
 
 [package.metadata.docs.rs]
 rustdoc-args = [ "--html-in-header", "./src/docs-header.html" ]
