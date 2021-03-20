@@ -1,5 +1,6 @@
 //! COBRA methods that take an LpProblem and a Solver
-use lp_modeler::solvers::SolverTrait;
+use crate::ModelLP;
+use good_lp::{constraint, solvers::Solver, Expression, ProblemVariables, Solution, SolverModel};
 
 use std::collections::HashMap;
 
@@ -10,7 +11,7 @@ use std::collections::HashMap;
 /// ```
 /// use kair::{ModelLP, fba};
 /// use std::{str::FromStr, convert::Into};
-/// use lp_modeler::solvers::CbcSolver;
+/// use good_lp::default_solver;
 ///
 /// # use std::{fs::File, io::{BufReader, prelude::*}};
 ///
@@ -19,13 +20,23 @@ use std::collections::HashMap;
 /// # let mut contents = String::new();
 /// # buf_reader.read_to_string(&mut contents).unwrap();
 /// // contents is a &str containing a SBML document
-/// let model = &ModelLP::from_str(&contents).unwrap();
-/// println!("{:?}", fba(&model.into(), CbcSolver::new()).unwrap())
+/// let model = ModelLP::from_str(&contents).unwrap();
+/// println!("{:?}", fba(model, default_solver).unwrap())
 /// ```
-pub fn fba<T: SolverTrait>(
-    problem: &T::P,
-    solver: T,
-) -> Result<HashMap<String, f32>, Box<dyn std::error::Error>> {
-    let solution = solver.run(problem)?;
-    Ok(solution.results)
+pub fn fba<S: Solver>(
+    mut model: ModelLP,
+    solver: S,
+) -> Result<HashMap<String, f64>, Box<dyn std::error::Error>> {
+    let mut problem = ProblemVariables::new();
+    model.populate_model(&mut problem);
+    let mut problem = problem.maximise(model.get_objective()).using(solver);
+    for (_, cons) in model.stoichiometry.iter() {
+        problem.add_constraint(constraint::eq(cons.iter().sum::<Expression>(), 0f32));
+    }
+    let solution = problem.solve().unwrap();
+    Ok(model
+        .variables
+        .iter()
+        .map(|(id, var)| (id.clone(), solution.value(*var)))
+        .collect())
 }

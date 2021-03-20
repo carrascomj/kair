@@ -20,22 +20,16 @@
 //!
 //! Read and optimize [e_coli_core model](http://bigg.ucsd.edu/models/e_coli_core)
 //! ```
-//! use kair::ModelLP;
+//! use kair::{ModelLP, flux_analysis::fba};
 //! use std::{str::FromStr, fs::File, io::{BufReader, prelude::*}};
+//! use good_lp::default_solver;
 //!
 //! let file = std::fs::File::open("examples/EcoliCore.xml").unwrap();
 //! let mut buf_reader = BufReader::new(file);
 //! let mut contents = String::new();
 //! buf_reader.read_to_string(&mut contents).unwrap();
 //! let model = ModelLP::from_str(&contents).unwrap();
-//! println!(
-//!     "Model {} ({}) has {:?} constraints and {:?} variables",
-//!     &model.id,
-//!     &model.name,
-//!     &model.constraints.len(),
-//!     &model.variables.len()
-//! );
-//! for (name, val) in model.optimize().unwrap().iter() {
+//! for (name, val) in fba(model, default_solver).unwrap().iter() {
 //!     println!("{} = {}", name, val)
 //! }
 //! ```
@@ -45,17 +39,16 @@
 //! * [Github repository](https://github.com/carrascomj/kair), open to PRs!
 //! * [rust_sbml](https://docs.rs/rust_sbml/0.3.0/rust_sbml/): SBML parser in rust.
 //! * [cobrapy](https://github.com/opencobra/cobrapy/): fully featured COBRA package written in Python.
-mod flux_analysis;
+pub mod flux_analysis;
 
 pub use flux_analysis::fba;
 
-use lp_modeler::dsl::*;
-use lp_modeler::solvers::CbcSolver;
+use good_lp::{
+    constraint, variable, Constraint, Expression, ProblemVariables, Solver, SolverModel, Variable,
+};
 use rust_sbml::{Model, Parameter, Reaction, Species, SpeciesReference};
-use uuid::Uuid;
 
 use std::collections::HashMap;
-use std::ops::AddAssign;
 use std::str::FromStr;
 
 /// LP problem as a Flux Balance Analysis formulation.
@@ -76,15 +69,14 @@ pub struct ModelLP {
     /// Reactions from the SBML document
     pub reactions: HashMap<String, Reaction>,
     /// Parsed from reactions, variables of LP problem
-    pub variables: HashMap<String, LpExpression>,
+    variables: HashMap<String, Variable>,
     /// Parameters from the SBML document
     pub config: HashMap<String, Parameter>,
     /// Reaction id to be used as the objective in the LP problem
     pub objective: String,
-    obj_expr: Option<LpExpression>,
-    stoichiometry: HashMap<String, Vec<LpExpression>>,
+    stoichiometry: HashMap<String, Vec<Expression>>,
     /// Parsed from the stoichiometry matrix
-    pub constraints: Vec<LpConstraint>,
+    pub constraints: Vec<Constraint>,
 }
 
 /// Indicate that the struct can be translated to a flux balance variable (generally, reactions)
@@ -130,29 +122,6 @@ impl Fbc for Reaction {
     }
 }
 
-impl Problem for ModelLP {
-    fn add_objective_expression(&mut self, expr: &LpExpression) {
-        let (_, simpl_expr) = split_constant_and_expr(&simplify(expr));
-        self.obj_expr = Some(simpl_expr);
-    }
-
-    fn add_constraints(&mut self, expr: &LpConstraint) {
-        self.constraints.push(expr.clone());
-    }
-}
-
-impl AddAssign<LpConstraint> for ModelLP {
-    fn add_assign(&mut self, _rhs: LpConstraint) {
-        self.add_constraints(&_rhs);
-    }
-}
-
-impl AddAssign<LpExpression> for ModelLP {
-    fn add_assign(&mut self, _rhs: LpExpression) {
-        self.add_objective_expression(&_rhs);
-    }
-}
-
 impl ModelLP {
     /// Read and call the LP builder.
     ///
@@ -170,44 +139,20 @@ impl ModelLP {
     /// ModelLP::from_str(&contents).unwrap();
     /// ```
     pub fn new(input_sbml: Model) -> Self {
-        let mut model = Self::from(input_sbml);
-        model.populate_model();
-        model
+        Self::from(input_sbml)
     }
-    /// Covenience method to solve Flux Balance Analysis (FBA) with the CbcSolver.
-    ///
-    /// FBA: [https://pubmed.ncbi.nlm.nih.gov/20212490/](https://pubmed.ncbi.nlm.nih.gov/20212490/)
-    ///
-    /// # Example
-    /// ```
-    /// use kair::ModelLP;
-    /// use std::str::FromStr;
-    /// # use std::{fs::File, io::{BufReader, prelude::*}};
-    ///
-    /// # let file = std::fs::File::open("examples/EcoliCore.xml").unwrap();
-    /// # let mut buf_reader = BufReader::new(file);
-    /// # let mut contents = String::new();
-    /// # buf_reader.read_to_string(&mut contents).unwrap();
-    /// // contents is a &str containing a SBML document
-    /// let model = ModelLP::from_str(&contents).unwrap();
-    /// println!("{:?}", model.optimize().unwrap())
-    /// ```
-    pub fn optimize(&self) -> Result<HashMap<String, f32>, Box<dyn std::error::Error>> {
-        let solver = CbcSolver::new();
 
-        fba(&self.into(), solver)
-    }
-    fn reac_expr(&self, met: &SpeciesReference, reac: &str, com: f32) -> Option<LpExpression> {
-        Some(
-            match met.stoichiometry {
-                Some(val) => com * (val as f32),
-                None => com * 1f32,
-            } * self.variables[reac].to_owned(),
-        )
+    fn reac_expr(&self, met: &SpeciesReference, reac: &str, com: f64) -> Expression {
+        Expression::from(self.variables[reac].to_owned())
+            * match met.stoichiometry {
+                Some(val) => com * val,
+                None => com * 1f64,
+            }
     }
     /// Build LP problem as an FBA formulation.
-    fn populate_model(&mut self) {
-        let mut stoichiometry = HashMap::<String, Vec<LpExpression>>::new();
+    fn populate_model(&mut self, problem: &mut ProblemVariables) {
+        self.add_vars(problem);
+        let mut stoichiometry = HashMap::<String, Vec<Expression>>::new();
         // Build a constraint (stoichiometry) table metabolites x reactions.
         for (reac_id, reaction) in self.reactions.iter() {
             reaction
@@ -218,7 +163,7 @@ impl ModelLP {
                     let cons = &mut stoichiometry
                         .entry(sref.species.to_owned())
                         .or_insert_with(Vec::new);
-                    cons.push(self.reac_expr(sref, reac_id, -1.).unwrap());
+                    cons.push(self.reac_expr(sref, reac_id, -1.))
                 });
             reaction
                 .list_of_products
@@ -228,18 +173,36 @@ impl ModelLP {
                     let cons = &mut stoichiometry
                         .entry(sref.species.to_owned())
                         .or_insert_with(Vec::new);
-                    cons.push(self.reac_expr(sref, reac_id, 1.).unwrap());
+                    cons.push(self.reac_expr(sref, reac_id, 1.));
                 });
         }
-        // Then, add each metabolite column as a constraint.
-        for (_, cons) in stoichiometry.iter() {
-            *self += cons.sum().ge(0.);
-            *self += cons.sum().le(0.);
-        }
         self.stoichiometry = stoichiometry;
-        // Add the problem as the objective defined in the SBML document
-        let obj = self.variables[&self.objective].clone();
-        *self += obj;
+    }
+    /// Get objective variable given the objective identifier
+    pub fn get_objective(&self) -> Variable {
+        self.variables[&self.objective]
+    }
+    /// Add the constraints to th problem
+    pub fn add_constraints<S: Solver>(&self, model: &mut S::Model) {
+        for (_, cons) in self.stoichiometry.iter() {
+            model.add_constraint(constraint::eq(cons.iter().sum::<Expression>(), 0f32));
+        }
+    }
+    fn add_vars(&mut self, problem: &mut ProblemVariables) {
+        self.variables = self
+            .reactions
+            .iter()
+            .map(|(id, reac)| {
+                (
+                    id.to_owned(),
+                    problem.add(
+                        variable()
+                            .min(reac.lb(&self.config))
+                            .max(reac.ub(&self.config)),
+                    ),
+                )
+            })
+            .collect();
     }
 }
 
@@ -256,19 +219,6 @@ impl From<Model> for ModelLP {
         let metabolites = model.species;
         let config = model.parameters;
         let reactions = model.reactions;
-        let reactions_lp: &HashMap<String, LpExpression> = &reactions
-            .iter()
-            .map(|(id, reac)| {
-                (
-                    id.to_owned(),
-                    LpExpression::ConsCont(
-                        LpContinuous::new(reac.name_var().as_ref())
-                            .lower_bound(reac.lb(&config))
-                            .upper_bound(reac.ub(&config)),
-                    ),
-                )
-            })
-            .collect();
         let objective = model.objectives.unwrap()[0].to_owned();
         let id = match model.id {
             Some(s) => s,
@@ -284,24 +234,11 @@ impl From<Model> for ModelLP {
             name,
             metabolites,
             reactions,
-            variables: reactions_lp.to_owned(),
+            variables: HashMap::<_, _>::new(),
             config,
             objective,
-            obj_expr: None,
             stoichiometry: HashMap::<_, _>::new(),
             constraints: Vec::<_>::new(),
-        }
-    }
-}
-
-impl<'a> From<&'a ModelLP> for LpProblem {
-    fn from(model: &'a ModelLP) -> LpProblem {
-        LpProblem {
-            name: "cobra model",
-            unique_name: format!("{}_{}", model.id, Uuid::new_v4()),
-            objective_type: LpObjective::Maximize,
-            obj_expr: model.obj_expr.clone(),
-            constraints: model.constraints.clone(),
         }
     }
 }
