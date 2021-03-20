@@ -1,6 +1,6 @@
 //! COBRA methods that take an LpProblem and a Solver
 use crate::ModelLP;
-use good_lp::{constraint, solvers::Solver, Expression, ProblemVariables, Solution, SolverModel};
+use good_lp::{solvers::Solver, ProblemVariables, Solution, SolverModel};
 
 use std::collections::HashMap;
 
@@ -30,9 +30,7 @@ pub fn fba<S: Solver>(
     let mut problem = ProblemVariables::new();
     model.populate_model(&mut problem);
     let mut problem = problem.maximise(model.get_objective()).using(solver);
-    for (_, cons) in model.stoichiometry.iter() {
-        problem.add_constraint(constraint::eq(cons.iter().sum::<Expression>(), 0f32));
-    }
+    model.add_constraints::<S>(&mut problem);
     let solution = problem.solve().unwrap();
     Ok(model
         .variables

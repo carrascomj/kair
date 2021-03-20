@@ -184,7 +184,7 @@ impl ModelLP {
     /// Add the constraints to th problem
     pub fn add_constraints<S: Solver>(&self, model: &mut S::Model) {
         for (_, cons) in self.stoichiometry.iter() {
-            model.add_constraint(constraint::eq(cons.iter().sum::<Expression>(), 0f32));
+            model.add_constraint(constraint::eq(cons.iter().sum::<Expression>(), 0.));
         }
     }
     fn add_vars(&mut self, problem: &mut ProblemVariables) {
