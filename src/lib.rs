@@ -43,9 +43,7 @@ pub mod flux_analysis;
 
 pub use flux_analysis::fba;
 
-use good_lp::{
-    constraint, variable, Expression, ProblemVariables, Solver, SolverModel, Variable,
-};
+use good_lp::{constraint, variable, Expression, ProblemVariables, Solver, SolverModel, Variable};
 use rust_sbml::{Model, Parameter, Reaction, Species, SpeciesReference};
 
 use std::collections::HashMap;

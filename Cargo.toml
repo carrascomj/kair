@@ -14,7 +14,6 @@ readme = "README.md"
 [dependencies]
 rust_sbml = { version="0.5.1", default_features=false }
 good_lp = { version="0.4", default-features=false }
-uuid = { version="0.7.4", features=["v4"]}
 
 [package.metadata.docs.rs]
 rustdoc-args = [ "--html-in-header", "./src/docs-header.html" ]
