@@ -44,7 +44,7 @@ pub mod flux_analysis;
 pub use flux_analysis::fba;
 
 use good_lp::{
-    constraint, variable, Constraint, Expression, ProblemVariables, Solver, SolverModel, Variable,
+    constraint, variable, Expression, ProblemVariables, Solver, SolverModel, Variable,
 };
 use rust_sbml::{Model, Parameter, Reaction, Species, SpeciesReference};
 
@@ -74,9 +74,8 @@ pub struct ModelLP {
     pub config: HashMap<String, Parameter>,
     /// Reaction id to be used as the objective in the LP problem
     pub objective: String,
-    stoichiometry: HashMap<String, Vec<Expression>>,
-    /// Parsed from the stoichiometry matrix
-    pub constraints: Vec<Constraint>,
+    /// Parsed stoichiometry matrix
+    pub stoichiometry: HashMap<String, Vec<Expression>>,
 }
 
 /// Indicate that the struct can be translated to a flux balance variable (generally, reactions)
@@ -150,7 +149,7 @@ impl ModelLP {
             }
     }
     /// Build LP problem as an FBA formulation.
-    fn populate_model(&mut self, problem: &mut ProblemVariables) {
+    pub fn populate_model(&mut self, problem: &mut ProblemVariables) {
         self.add_vars(problem);
         let mut stoichiometry = HashMap::<String, Vec<Expression>>::new();
         // Build a constraint (stoichiometry) table metabolites x reactions.
@@ -238,7 +237,6 @@ impl From<Model> for ModelLP {
             config,
             objective,
             stoichiometry: HashMap::<_, _>::new(),
-            constraints: Vec::<_>::new(),
         }
     }
 }
