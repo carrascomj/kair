@@ -2,7 +2,9 @@ use criterion::{criterion_group, criterion_main, Criterion};
 
 extern crate kair;
 
-use kair::ModelLP;
+use good_lp::coin_cbc;
+use kair::{flux_analysis::fba, ModelLP};
+
 use std::str::FromStr;
 
 fn read_ecoli() {
@@ -13,7 +15,7 @@ fn read_ecoli() {
 fn optimize_ecoli() {
     let file_str = include_str!("../tests/EcoliCore.xml");
     let model = ModelLP::from_str(file_str).unwrap();
-    model.optimize().unwrap();
+    fba(model, coin_cbc).unwrap();
 }
 
 fn create_lp_benchmark(c: &mut Criterion) {
