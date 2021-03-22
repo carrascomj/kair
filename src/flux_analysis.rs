@@ -20,11 +20,11 @@ use std::collections::HashMap;
 /// # let mut contents = String::new();
 /// # buf_reader.read_to_string(&mut contents).unwrap();
 /// // contents is a &str containing a SBML document
-/// let model = ModelLP::from_str(&contents).unwrap();
-/// println!("{:?}", fba(model, default_solver).unwrap())
+/// let mut model = ModelLP::from_str(&contents).unwrap();
+/// println!("{:?}", fba(&mut model, default_solver).unwrap())
 /// ```
 pub fn fba<S: Solver>(
-    mut model: ModelLP,
+    model: &mut ModelLP,
     solver: S,
 ) -> Result<HashMap<String, f64>, Box<dyn std::error::Error>> {
     let mut problem = ProblemVariables::new();

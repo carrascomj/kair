@@ -28,8 +28,8 @@
 //! let mut buf_reader = BufReader::new(file);
 //! let mut contents = String::new();
 //! buf_reader.read_to_string(&mut contents).unwrap();
-//! let model = ModelLP::from_str(&contents).unwrap();
-//! for (name, val) in fba(model, default_solver).unwrap().iter() {
+//! let mut model = ModelLP::from_str(&contents).unwrap();
+//! for (name, val) in fba(&mut model, default_solver).unwrap().iter() {
 //!     println!("{} = {}", name, val)
 //! }
 //! ```

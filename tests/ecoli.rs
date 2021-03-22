@@ -40,9 +40,9 @@ fn verify_neg_bound() {
 
 #[test]
 fn optimize_ecoli() {
-    let model = ModelLP::from_str(&EXAMPLE).unwrap();
+    let mut model = ModelLP::from_str(&EXAMPLE).unwrap();
     assert_eq!(
-        (fba(model, default_solver).unwrap()["R_BIOMASS_Ecoli_core_w_GAM"] * 10000.).round() as i32,
+        (fba(&mut model, default_solver).unwrap()["R_BIOMASS_Ecoli_core_w_GAM"] * 10000.).round() as i32,
         8739
     )
 }
