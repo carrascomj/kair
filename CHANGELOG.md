@@ -1,5 +1,10 @@
 Next release
 ------------
+
+0.4.0
+-----
+* Replaced `lp-modeler` with `good_lp` ([#5](https://github.com/carrascomj/kair/pull/5))
+* Implement [Flux Variability Analysis](https://github.com/carrascomj/kair/pull/6).
 * Fix bug were doctests were racing for the file handle and sometimes failed because of that.
 
 0.3.0

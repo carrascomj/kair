@@ -26,9 +26,17 @@ for a brief description of FBA.
 Add **kair** it to your Cargo.toml:
 ```toml
 [dependencies]
-kair = "0.3.0"
+kair = "0.4.0"
 ```
-Make sure you have installed the [Cbc solver](https://github.com/coin-or/Cbc#binaries).
+
+In addition, add [`good_lp`](https://github.com/rust-or/good_lp) with the solver of choice, for instance `coin_cbc` (default):
+```toml
+[dependencies]
+good_lp = { version="1.1.0", default_features=true }
+```
+
+Make sure you have installed the [Cbc solver](https://github.com/coin-or/Cbc#binaries)
+(other solvers do not require installation).
 ```shell
 # Debian
 sudo apt install coinor-cbc
@@ -41,7 +49,8 @@ brew tap coin-or-tools/coinor && brew install coin-or-tools/coinor/cbc
 ## Example
 Some `use` statements to get started.
 ```rust
-use kair::ModelLP;
+use kair::{ModelLP, fba, flux_analysis::fva};
+use good_lp::default_solver;
 use std::str::FromStr;
 ```
 First, read the SBML document, we will be using the [e_coli_core model](http://bigg.ucsd.edu/models/e_coli_core).
@@ -49,24 +58,11 @@ First, read the SBML document, we will be using the [e_coli_core model](http://b
 let file_str = std::fs::read_to_string("examples/EcoliCore.xml").unwrap();
 let model = ModelLP::from_str(&file_str).unwrap();
 ```
-Having read the document, the LP problem is already formulated. We can print
-some information about it:
-```rust
-println!(
-      "Model has {:?} constraints and {:?} variables",
-      &model.constraints.len(),
-      &model.variables.len()
-  );
-```
-_Output_
-```
-Model has 144 constraints and 95 variables
-```
-Finally, we can optimize it and print the solution, which is just a
+Now, we can optimize it and print the solution, which is just a
 [HashMap](https://doc.rust-lang.org/std/collections/struct.HashMap.html) of
 pairs _variable name_ -> _solution value_.
 ```rust
-for (name, val) in model.optimize().unwrap().iter() {
+for (name, val) in fba(&mut model, default_solver).unwrap().iter() {
     println!("{} = {}", name, val)
 }
 ```
@@ -88,4 +84,25 @@ R_TKT1_ = 1.4969838
 To run this example, on the root of this repository, run
 ```shell
 cargo run --example ecoli
+```
+
+Flux variability analysis is also implemented:
+```rust
+let reactions: Vec<String> = model.reactions.iter().map(|(k, _v)| k.clone()).collect();
+for (name, val) in fva(&mut model, default_solver, reactions).unwrap().iter() {
+    println!("{} = {:?}", name, val)
+}
+```
+_Output (you would need to use a bigger model to see the difference)_
+```
+R_ACONTa = (6.007249575350586, 6.007249575350007)
+R_ACALD = (0.0, 0.0)
+R_ACKr = (-0.0, -0.0)
+R_ICDHyr = (6.007249575351851, 6.007249575350007)
+R_CO2t = (-22.80983331020489, -22.809833310205118)
+R_RPI = (-2.2815030940668573, -2.2815030940674283)
+R_ADK1 = (-0.0, -0.0000000000003395200787181807)
+R_PGK = (-16.0235261431673, -16.02352614316787)
+R_SUCCt3 = (0.0, -0.0000000000004168517383125921)
+R_EX_pyr_e = (0.0, 0.0)
 ```
