@@ -3,7 +3,8 @@ use crate::ModelLP;
 use good_lp::{
     solvers::ObjectiveDirection, solvers::Solver, ProblemVariables, Solution, SolverModel,
 };
-use rayon::prelude::*;
+use std::sync::mpsc::channel;
+use std::thread;
 
 use std::collections::HashMap;
 
@@ -98,7 +99,7 @@ pub fn fva<S>(
     reactions: &[String],
 ) -> Result<HashMap<String, (f64, f64)>, Box<dyn std::error::Error>>
 where
-    S: Solver + Clone + Send + Sync,
+    S: Solver + Clone + Send + Sync + 'static,
     <<S as good_lp::Solver>::Model as good_lp::SolverModel>::Error: 'static + std::error::Error,
 {
     let original_solution = fba(model, solver.clone())?;
@@ -106,21 +107,43 @@ where
     let objective = model.reactions.get_mut(&model.objective).unwrap();
     objective.lb = fix_to;
     objective.ub = fix_to;
-    Ok(reactions
-        .par_iter()
-        .map(|reaction| {
-            let mut model = model.clone();
-            model.objective = reaction.clone();
-            let upper_value = match fba(&mut model, solver.clone()) {
-                Ok(sol) => sol[&model.objective],
-                _ => std::f64::NAN,
-            };
-            let lower_value =
-                match _fva_step(&mut model, solver.clone(), ObjectiveDirection::Minimisation) {
+    let cpus = num_cpus::get();
+    let (tx, rx) = channel();
+    let reacs_per_job = reactions.len() / num_cpus::get();
+
+    for i in 0..cpus {
+        let mut model = model.clone();
+        let tx = tx.clone();
+        let solver = solver.clone();
+        let (lower, mut upper) = (i * reacs_per_job, reacs_per_job * (i+1));
+        if (cpus - 1) == i  {
+            upper = reactions.len()
+        }
+        let reactions = reactions[lower..upper].to_vec();
+        thread::spawn(move || {
+            for reaction in reactions {
+                model.objective = reaction.clone();
+                let upper_value = match fba(&mut model, solver.clone()) {
                     Ok(sol) => sol[&model.objective],
                     _ => std::f64::NAN,
                 };
-            (reaction.clone(), (lower_value, upper_value))
-        })
-        .collect())
+                let lower_value = match _fva_step(
+                    &mut model,
+                    solver.clone(),
+                    ObjectiveDirection::Minimisation,
+                ) {
+                    Ok(sol) => sol[&model.objective],
+                    _ => std::f64::NAN,
+                };
+                tx.send((reaction.clone(), (lower_value, upper_value)))
+                    .expect("Could not send data!");
+            }
+        });
+    }
+    let mut result = HashMap::new();
+    for _ in 0..(reactions.len()) {
+        let (reac_id, bounds) = rx.recv()?;
+        result.insert(reac_id, bounds);
+    }
+    Ok(result)
 }
