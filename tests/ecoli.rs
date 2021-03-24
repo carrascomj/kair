@@ -1,6 +1,7 @@
 extern crate kair;
 
-use kair::{Fbc, ModelLP};
+use good_lp::default_solver;
+use kair::{flux_analysis::fba, Fbc, ModelLP};
 use std::str::FromStr;
 
 const EXAMPLE: &str = include_str!("../tests/EcoliCore.xml");
@@ -39,9 +40,9 @@ fn verify_neg_bound() {
 
 #[test]
 fn optimize_ecoli() {
-    let model = ModelLP::from_str(&EXAMPLE).unwrap();
+    let mut model = ModelLP::from_str(&EXAMPLE).unwrap();
     assert_eq!(
-        (model.optimize().unwrap()["R_BIOMASS_Ecoli_core_w_GAM_"] * 10000.).round() as i32,
+        (fba(&mut model, default_solver).unwrap()["R_BIOMASS_Ecoli_core_w_GAM"] * 10000.).round() as i32,
         8739
     )
 }
