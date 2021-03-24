@@ -13,14 +13,14 @@ readme = "README.md"
 
 [dependencies]
 rust_sbml = { version="0.5.1", default_features=false }
-good_lp = { version="0.4", default-features=false }
+good_lp = { version="1.0.0", default-features=false }
 
 [package.metadata.docs.rs]
 rustdoc-args = [ "--html-in-header", "./src/docs-header.html" ]
 
 [dev-dependencies]
 criterion = "0.3.3"
-good_lp = "0.4"
+good_lp = "1.0.0"
 
 [[bench]]
 name = "formulate_from_sbml"
