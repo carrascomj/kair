@@ -115,8 +115,8 @@ where
         let mut model = model.clone();
         let tx = tx.clone();
         let solver = solver.clone();
-        let (lower, mut upper) = (i * reacs_per_job, reacs_per_job * (i+1));
-        if (cpus - 1) == i  {
+        let (lower, mut upper) = (i * reacs_per_job, reacs_per_job * (i + 1));
+        if (cpus - 1) == i {
             upper = reactions.len()
         }
         let reactions = reactions[lower..upper].to_vec();
@@ -127,14 +127,11 @@ where
                     Ok(sol) => sol[&model.objective],
                     _ => std::f64::NAN,
                 };
-                let lower_value = match _fva_step(
-                    &mut model,
-                    solver.clone(),
-                    ObjectiveDirection::Minimisation,
-                ) {
-                    Ok(sol) => sol[&model.objective],
-                    _ => std::f64::NAN,
-                };
+                let lower_value =
+                    match _fva_step(&mut model, solver.clone(), ObjectiveDirection::Minimisation) {
+                        Ok(sol) => sol[&model.objective],
+                        _ => std::f64::NAN,
+                    };
                 tx.send((reaction.clone(), (lower_value, upper_value)))
                     .expect("Could not send data!");
             }

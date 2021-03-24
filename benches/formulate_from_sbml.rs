@@ -4,7 +4,7 @@ extern crate good_lp;
 extern crate kair;
 
 use good_lp::{coin_cbc, constraint, Expression, ProblemVariables, SolverModel};
-use kair::{flux_analysis::fba, ModelLP, flux_analysis::fva};
+use kair::{flux_analysis::fba, flux_analysis::fva, ModelLP};
 use std::str::FromStr;
 
 fn read_ecoli() {
