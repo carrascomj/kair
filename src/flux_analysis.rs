@@ -3,6 +3,7 @@ use crate::ModelLP;
 use good_lp::{
     solvers::ObjectiveDirection, solvers::Solver, ProblemVariables, Solution, SolverModel,
 };
+use rayon::prelude::*;
 
 use std::collections::HashMap;
 
@@ -25,7 +26,7 @@ use std::collections::HashMap;
 /// let mut model = ModelLP::from_str(&contents).unwrap();
 /// println!("{:?}", fba(&mut model, default_solver).unwrap())
 /// ```
-pub fn fba<S: Solver>(
+pub fn fba<S>(
     model: &mut ModelLP,
     solver: S,
 ) -> Result<HashMap<String, f64>, Box<dyn std::error::Error>>
@@ -97,7 +98,7 @@ pub fn fva<S>(
     reactions: &[String],
 ) -> Result<HashMap<String, (f64, f64)>, Box<dyn std::error::Error>>
 where
-    S: Solver + Clone,
+    S: Solver + Clone + Send + Sync,
     <<S as good_lp::Solver>::Model as good_lp::SolverModel>::Error: 'static + std::error::Error,
 {
     let original_solution = fba(model, solver.clone())?;
@@ -106,15 +107,16 @@ where
     objective.lb = fix_to;
     objective.ub = fix_to;
     Ok(reactions
-        .iter()
+        .par_iter()
         .map(|reaction| {
+            let mut model = model.clone();
             model.objective = reaction.clone();
-            let upper_value = match fba(model, solver.clone()) {
+            let upper_value = match fba(&mut model, solver.clone()) {
                 Ok(sol) => sol[&model.objective],
                 _ => std::f64::NAN,
             };
             let lower_value =
-                match _fva_step(model, solver.clone(), ObjectiveDirection::Minimisation) {
+                match _fva_step(&mut model, solver.clone(), ObjectiveDirection::Minimisation) {
                     Ok(sol) => sol[&model.objective],
                     _ => std::f64::NAN,
                 };
