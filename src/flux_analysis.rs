@@ -1,5 +1,5 @@
 //! COBRA methods that take an LpProblem and a Solver
-use crate::model::ModelLP;
+use crate::model::ModelLp;
 use good_lp::{
     solvers::ObjectiveDirection, solvers::StaticSolver, ProblemVariables, Solution, Solver,
     SolverModel,
@@ -17,7 +17,7 @@ type SolverError<S> = <<S as Solver>::Model as good_lp::SolverModel>::Error;
 ///
 /// # Example
 /// ```
-/// use kair::{ModelLP, fba};
+/// use kair::{ModelLp, fba};
 /// use std::{str::FromStr, convert::Into};
 /// use good_lp::default_solver;
 ///
@@ -28,18 +28,18 @@ type SolverError<S> = <<S as Solver>::Model as good_lp::SolverModel>::Error;
 /// # let mut contents = String::new();
 /// # buf_reader.read_to_string(&mut contents).unwrap();
 /// // contents is a &str containing a SBML document
-/// let mut model = ModelLP::from_str(&contents).unwrap();
+/// let mut model = ModelLp::from_str(&contents).unwrap();
 /// println!("{:?}", fba(&mut model, default_solver).unwrap())
 /// ```
 pub fn fba<S: Solver>(
-    model: &mut ModelLP,
+    model: &mut ModelLp,
     solver: S,
 ) -> Result<HashMap<String, f64>, SolverError<S>> {
     _fva_step(model, solver, ObjectiveDirection::Maximisation)
 }
 
 fn _fva_step<S: Solver>(
-    model: &mut ModelLP,
+    model: &mut ModelLp,
     solver: S,
     direction: ObjectiveDirection,
 ) -> Result<HashMap<String, f64>, SolverError<S>> {
@@ -70,7 +70,7 @@ fn _fva_step<S: Solver>(
 ///
 /// # Example
 /// ```
-/// use kair::{ModelLP, flux_analysis::fva};
+/// use kair::{ModelLp, flux_analysis::fva};
 /// use std::{str::FromStr, convert::Into};
 /// use good_lp::default_solver;
 ///
@@ -81,7 +81,7 @@ fn _fva_step<S: Solver>(
 /// # let mut contents = String::new();
 /// # buf_reader.read_to_string(&mut contents).unwrap();
 /// // contents is a &str containing a SBML document
-/// let mut model = ModelLP::from_str(&contents).unwrap();
+/// let mut model = ModelLp::from_str(&contents).unwrap();
 /// let reactions = &model.  reactions.iter().map(|(k, _v)| k.clone()).collect::<Vec<String>>();
 /// println!("Reaction  LowerFlux  UpperFlux\n{:?}", fva(
 ///     &mut model,
@@ -90,7 +90,7 @@ fn _fva_step<S: Solver>(
 /// ).unwrap())
 /// ```
 pub fn fva<S>(
-    model: &mut ModelLP,
+    model: &mut ModelLp,
     solver: S,
     reactions: &[String],
 ) -> Result<HashMap<String, (f64, f64)>, Box<dyn std::error::Error>>

@@ -29,7 +29,7 @@ custom_error! {
 ///
 /// $$ \text{Max.} f(\overrightarrow{z}) \newline \text{subject to}\medspace S\overrightarrow{v} = 0 \newline \text{where}\medspace lb_j \le v_j \le ub_j $$
 #[derive(Clone)]
-pub struct ModelLP {
+pub struct ModelLp {
     /// Id from SBML document
     pub id: String,
     /// Name from SBML document
@@ -37,7 +37,7 @@ pub struct ModelLP {
     /// Metabolites from the SBML document
     pub metabolites: HashMap<String, Species>,
     /// Reactions from the SBML document
-    pub reactions: HashMap<String, ReactionLP>,
+    pub reactions: HashMap<String, ReactionLp>,
     /// Parsed from reactions, variables of LP problem
     pub variables: HashMap<String, Variable>,
     /// Parameters from the SBML document
@@ -50,7 +50,7 @@ pub struct ModelLP {
 
 /// Reaction struct translated from a SBML Reaction for ease of use.
 #[derive(Clone)]
-pub struct ReactionLP {
+pub struct ReactionLp {
     /// lower bound of the reaction
     pub lb: f64,
     /// upper bound of the reaction
@@ -60,12 +60,12 @@ pub struct ReactionLP {
     products: Vec<SpeciesReference>,
 }
 
-impl ReactionLP {
+impl ReactionLp {
     fn from_reaction(
         reaction: Reaction,
         parameters: &HashMap<String, Parameter>,
-    ) -> Result<ReactionLP, SBMLError> {
-        Ok(ReactionLP {
+    ) -> Result<ReactionLp, SBMLError> {
+        Ok(ReactionLp {
             id: format!(
                 "{}_{}",
                 reaction.id,
@@ -116,12 +116,12 @@ impl ReactionLP {
     }
 }
 
-impl ModelLP {
+impl ModelLp {
     /// Read and call the LP builder.
     ///
     /// # Example
     /// ```
-    /// use kair::ModelLP;
+    /// use kair::ModelLp;
     /// use std::str::FromStr;
     /// # use std::{fs::File, io::{BufReader, prelude::*}};
     ///
@@ -130,7 +130,7 @@ impl ModelLP {
     /// # let mut contents = String::new();
     /// # buf_reader.read_to_string(&mut contents).unwrap();
     /// // contents is a &str containing a SBML document
-    /// ModelLP::from_str(&contents).unwrap();
+    /// ModelLp::from_str(&contents).unwrap();
     /// ```
     pub fn new(input_sbml: Model) -> Self {
         Self::from(input_sbml)
@@ -169,7 +169,7 @@ impl ModelLP {
         self.variables[&self.objective]
     }
     /// Get objective variable given the objective identifier
-    pub fn get_objective_reaction(&mut self) -> Result<&mut ReactionLP, SBMLError> {
+    pub fn get_objective_reaction(&mut self) -> Result<&mut ReactionLp, SBMLError> {
         self.reactions
             .get_mut(&self.objective)
             .ok_or(SBMLError::InconsistentObjective {
@@ -196,7 +196,7 @@ impl ModelLP {
     }
 }
 
-impl FromStr for ModelLP {
+impl FromStr for ModelLp {
     type Err = Box<dyn std::error::Error>;
 
     fn from_str(input_sbml: &str) -> Result<Self, Box<dyn std::error::Error>> {
@@ -204,8 +204,8 @@ impl FromStr for ModelLP {
     }
 }
 
-impl From<Model> for ModelLP {
-    fn from(mut model: Model) -> ModelLP {
+impl From<Model> for ModelLp {
+    fn from(mut model: Model) -> ModelLp {
         let metabolites = model.species;
         let config = model.parameters;
         let mut reactions = HashMap::new();
@@ -214,7 +214,7 @@ impl From<Model> for ModelLP {
             reactions.insert(
                 key.to_owned(),
                 // key comes from model.reactions.keys, which is iterated just once
-                ReactionLP::from_reaction(model.reactions.remove(key).unwrap(), &config).unwrap(),
+                ReactionLp::from_reaction(model.reactions.remove(key).unwrap(), &config).unwrap(),
             );
         }
         let objective = model.objectives.unwrap()[0].to_owned();
@@ -227,7 +227,7 @@ impl From<Model> for ModelLP {
             _ => "".to_string(),
         };
 
-        ModelLP {
+        ModelLp {
             id,
             name,
             metabolites,

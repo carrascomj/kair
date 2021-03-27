@@ -4,17 +4,17 @@ extern crate good_lp;
 extern crate kair;
 
 use good_lp::{coin_cbc, constraint, Expression, ProblemVariables, SolverModel};
-use kair::{flux_analysis::fba, flux_analysis::fva, ModelLP};
+use kair::{flux_analysis::fba, flux_analysis::fva, ModelLp};
 use std::str::FromStr;
 
 fn read_ecoli() {
     let file_str = include_str!("../tests/EcoliCore.xml");
-    ModelLP::from_str(file_str).unwrap();
+    ModelLp::from_str(file_str).unwrap();
 }
 
 fn read_recon1() {
     let file_str = include_str!("../tests/RECON1.xml");
-    let mut model = ModelLP::from_str(file_str).unwrap();
+    let mut model = ModelLp::from_str(file_str).unwrap();
     let mut problem = ProblemVariables::new();
     model.populate_model(&mut problem);
     let mut problem = problem.maximise(model.get_objective()).using(coin_cbc);
@@ -25,13 +25,13 @@ fn read_recon1() {
 
 fn optimize_ecoli() {
     let file_str = include_str!("../tests/EcoliCore.xml");
-    let mut model = ModelLP::from_str(file_str).unwrap();
+    let mut model = ModelLp::from_str(file_str).unwrap();
     fba(&mut model, coin_cbc).unwrap();
 }
 
 fn fva_ecoli_small() {
     let file_str = include_str!("../tests/EcoliCore.xml");
-    let mut model = ModelLP::from_str(file_str).unwrap();
+    let mut model = ModelLp::from_str(file_str).unwrap();
     let reactions: Vec<String> = model.reactions.iter().map(|(k, _v)| k.clone()).collect();
     fva(&mut model, coin_cbc, &reactions).unwrap();
 }

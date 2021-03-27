@@ -20,7 +20,7 @@
 //!
 //! Read and optimize [e_coli_core model](http://bigg.ucsd.edu/models/e_coli_core)
 //! ```
-//! use kair::{ModelLP, flux_analysis::fba};
+//! use kair::{ModelLp, flux_analysis::fba};
 //! use std::{str::FromStr, fs::File, io::{BufReader, prelude::*}};
 //! use good_lp::default_solver;
 //!
@@ -28,7 +28,7 @@
 //! let mut buf_reader = BufReader::new(file);
 //! let mut contents = String::new();
 //! buf_reader.read_to_string(&mut contents).unwrap();
-//! let mut model = ModelLP::from_str(&contents).unwrap();
+//! let mut model = ModelLp::from_str(&contents).unwrap();
 //! for (name, val) in fba(&mut model, default_solver).unwrap().iter() {
 //!     println!("{} = {}", name, val)
 //! }
@@ -43,4 +43,4 @@ pub mod flux_analysis;
 pub mod model;
 
 pub use flux_analysis::fba;
-pub use model::ModelLP;
+pub use model::ModelLp;
