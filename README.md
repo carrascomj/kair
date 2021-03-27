@@ -26,7 +26,7 @@ for a brief description of FBA.
 Add **kair** it to your Cargo.toml:
 ```toml
 [dependencies]
-kair = "0.4.0"
+kair = "0.5.0"
 ```
 
 In addition, add [`good_lp`](https://github.com/rust-or/good_lp) with the solver of choice, for instance `coin_cbc` (default):
