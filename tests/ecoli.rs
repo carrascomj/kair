@@ -3,7 +3,7 @@ extern crate kair;
 use good_lp::default_solver;
 use kair::{
     flux_analysis::{fba, fva},
-    Fbc, ModelLP,
+    ModelLP,
 };
 use std::str::FromStr;
 
@@ -17,10 +17,7 @@ fn read_ecoli() {
 #[test]
 fn verify_bound() {
     let model = ModelLP::from_str(&EXAMPLE).unwrap();
-    assert_eq!(
-        (model.reactions["R_ATPM"].lb(&model.config) * 100.).round() as i32,
-        839
-    );
+    assert_eq!((model.reactions["R_ATPM"].lb * 100.).round() as i32, 839);
 }
 
 #[test]
@@ -35,10 +32,7 @@ fn verify_neg_bound() {
             .filter(|id| id.starts_with("R_EX"))
             .collect::<Vec::<String>>()
     );
-    assert_eq!(
-        model.reactions["R_EX_glc__D_e"].lb(&model.config).round() as i32,
-        -10
-    );
+    assert_eq!(model.reactions["R_EX_glc__D_e"].lb.round() as i32, -10);
 }
 
 #[test]
