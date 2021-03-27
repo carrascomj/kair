@@ -1,9 +1,24 @@
 //! Structs for the formulation of the LP problem from the SBML model
+use custom_error::custom_error;
 use good_lp::{constraint, variable, Expression, ProblemVariables, Solver, SolverModel, Variable};
 use rust_sbml::{Model, Parameter, Reaction, Species, SpeciesReference};
 
 use std::collections::HashMap;
 use std::str::FromStr;
+
+custom_error! {
+    /// Error for inconsistencies on the SBML document
+    pub SBMLError
+    /// When a reaction uses an unknown parameter
+    InconsistentModel{/// parameter name
+        param: String} = "reaction points to {param} but it does not exist in model.parameters",
+    /// When a parameter.value is accessed but None
+    EmptyParameter{/// parameter name
+        param: String} = "the parameter {param} exists but it holds no value",
+    /// When the model.objective is not in model.reactions
+    InconsistentObjective{/// objective name
+        obj: String} = "model.objective points to {obj}, which could not be found in the model."
+}
 
 /// LP problem as a Flux Balance Analysis formulation.
 ///
@@ -46,8 +61,11 @@ pub struct ReactionLP {
 }
 
 impl ReactionLP {
-    fn from_reaction(reaction: Reaction, parameters: &HashMap<String, Parameter>) -> ReactionLP {
-        ReactionLP {
+    fn from_reaction(
+        reaction: Reaction,
+        parameters: &HashMap<String, Parameter>,
+    ) -> Result<ReactionLP, SBMLError> {
+        Ok(ReactionLP {
             id: format!(
                 "{}_{}",
                 reaction.id,
@@ -58,23 +76,43 @@ impl ReactionLP {
             ),
             lb: match reaction.lower_bound.as_ref() {
                 // a parameter in reaction is guaranteed to be on the list of parameters of SBML
-                Some(s) => parameters[s].value.unwrap(),
+                Some(s) => parameters
+                    .get(s)
+                    .ok_or(SBMLError::InconsistentModel {
+                        param: s.to_owned(),
+                    })?
+                    .value
+                    .ok_or(SBMLError::EmptyParameter {
+                        param: s.to_owned(),
+                    })?,
                 _ => match parameters.get("cobra_default_lb") {
-                    Some(param) => param.value.unwrap(),
+                    Some(param) => param.value.ok_or(SBMLError::EmptyParameter {
+                        param: String::from("cobra_default_lb"),
+                    })?,
                     _ => -1000.,
                 },
             },
             ub: match reaction.upper_bound.as_ref() {
                 // a parameter in reaction is guaranteed to be on the list of parameters of SBML
-                Some(s) => parameters[s].value.unwrap(),
+                Some(s) => parameters
+                    .get(s)
+                    .ok_or(SBMLError::InconsistentModel {
+                        param: s.to_owned(),
+                    })?
+                    .value
+                    .ok_or(SBMLError::EmptyParameter {
+                        param: s.to_owned(),
+                    })?,
                 _ => match parameters.get("cobra_default_ub") {
-                    Some(param) => param.value.unwrap(),
+                    Some(param) => param.value.ok_or(SBMLError::EmptyParameter {
+                        param: String::from("cobra_default_ub"),
+                    })?,
                     _ => 1000.,
                 },
             },
             reactants: reaction.list_of_reactants.species_references,
             products: reaction.list_of_products.species_references,
-        }
+        })
     }
 }
 
@@ -130,6 +168,14 @@ impl ModelLP {
     pub fn get_objective(&self) -> Variable {
         self.variables[&self.objective]
     }
+    /// Get objective variable given the objective identifier
+    pub fn get_objective_reaction(&mut self) -> Result<&mut ReactionLP, SBMLError> {
+        self.reactions
+            .get_mut(&self.objective)
+            .ok_or(SBMLError::InconsistentObjective {
+                obj: self.objective.to_owned(),
+            })
+    }
     /// Add the constraints to th problem
     pub fn add_constraints<S: Solver>(&self, model: &mut S::Model) {
         for (_, cons) in self.stoichiometry.iter() {
@@ -168,7 +214,7 @@ impl From<Model> for ModelLP {
             reactions.insert(
                 key.to_owned(),
                 // key comes from model.reactions.keys, which is iterated just once
-                ReactionLP::from_reaction(model.reactions.remove(key).unwrap(), &config),
+                ReactionLP::from_reaction(model.reactions.remove(key).unwrap(), &config).unwrap(),
             );
         }
         let objective = model.objectives.unwrap()[0].to_owned();

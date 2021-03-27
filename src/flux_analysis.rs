@@ -1,12 +1,16 @@
 //! COBRA methods that take an LpProblem and a Solver
-use crate::ModelLP;
+use crate::model::ModelLP;
 use good_lp::{
-    solvers::ObjectiveDirection, solvers::Solver, ProblemVariables, Solution, SolverModel,
+    solvers::ObjectiveDirection, solvers::StaticSolver, ProblemVariables, Solution, Solver,
+    SolverModel,
 };
+
+use std::collections::HashMap;
 use std::sync::mpsc::channel;
 use std::thread;
 
-use std::collections::HashMap;
+// generic type for the Errors implemented by different solver interfaces
+type SolverError<S> = <<S as Solver>::Model as good_lp::SolverModel>::Error;
 
 /// Optimize the model according to Flux Balance Analysis (FBA).
 /// FBA: [https://pubmed.ncbi.nlm.nih.gov/20212490/](https://pubmed.ncbi.nlm.nih.gov/20212490/)
@@ -27,26 +31,18 @@ use std::collections::HashMap;
 /// let mut model = ModelLP::from_str(&contents).unwrap();
 /// println!("{:?}", fba(&mut model, default_solver).unwrap())
 /// ```
-pub fn fba<S>(
+pub fn fba<S: Solver>(
     model: &mut ModelLP,
     solver: S,
-) -> Result<HashMap<String, f64>, Box<dyn std::error::Error>>
-where
-    S: Solver,
-    <<S as good_lp::Solver>::Model as good_lp::SolverModel>::Error: 'static + std::error::Error,
-{
+) -> Result<HashMap<String, f64>, SolverError<S>> {
     _fva_step(model, solver, ObjectiveDirection::Maximisation)
 }
 
-fn _fva_step<S>(
+fn _fva_step<S: Solver>(
     model: &mut ModelLP,
     solver: S,
     direction: ObjectiveDirection,
-) -> Result<HashMap<String, f64>, Box<dyn std::error::Error>>
-where
-    S: Solver,
-    <<S as good_lp::Solver>::Model as good_lp::SolverModel>::Error: 'static + std::error::Error,
-{
+) -> Result<HashMap<String, f64>, SolverError<S>> {
     let mut problem = ProblemVariables::new();
     model.populate_model(&mut problem);
     let mut problem = problem
@@ -99,12 +95,11 @@ pub fn fva<S>(
     reactions: &[String],
 ) -> Result<HashMap<String, (f64, f64)>, Box<dyn std::error::Error>>
 where
-    S: Solver + Clone + Send + Sync + 'static,
-    <<S as good_lp::Solver>::Model as good_lp::SolverModel>::Error: 'static + std::error::Error,
+    S: StaticSolver + Clone + Send + Sync,
 {
     let original_solution = fba(model, solver.clone())?;
     let fix_to = original_solution[&model.objective];
-    let objective = model.reactions.get_mut(&model.objective).unwrap();
+    let objective = model.get_objective_reaction()?;
     objective.lb = fix_to;
     objective.ub = fix_to;
     let cpus = num_cpus::get();
