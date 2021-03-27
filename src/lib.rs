@@ -15,6 +15,7 @@
 //! # COBRA methods available
 //!
 //! * [Flux Balance Analysis](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3108565/).
+//! * [Flux Variablity Analysis](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2963619/).
 //!
 //! # Examples
 //!
