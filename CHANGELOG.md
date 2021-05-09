@@ -1,6 +1,15 @@
 Next release
 ------------
 
+0.5.0
+-----
+* New Error types.
+* Better and simplified `Solver` arguments in flux analysis.
+* `get_objective_reaction` method for `ModelLp`.
+* Renamed `ModelLP` to `ModelLp`.
+* Refactored `ModelLp` to its own file.
+* deps: [`good_lp`](https://github.com/rust-or/good_lp) bumped to [1.1.0].
+
 0.4.0
 -----
 * Replaced `lp-modeler` with `good_lp` ([#5](https://github.com/carrascomj/kair/pull/5))
